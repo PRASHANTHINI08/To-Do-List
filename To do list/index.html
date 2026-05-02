@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dora ..Plan with Dora</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/style.css">
+  
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <!-- Auth Screen -->
+  <div id="auth-container">
+    <div class="auth-card">
+      <div style="display: flex; justify-content: center; margin-bottom: 16px; color: var(--primary-color)">
+        <i data-lucide="sparkles" width="48" height="48"></i>
+      </div>
+      <h1 class="auth-title">Dora ..Plan with Dora</h1>
+      <p style="margin-bottom: 24px; color: var(--text-secondary);">Manage tasks intelligently.</p>
+      
+      <form id="auth-form">
+        <div class="input-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" required placeholder="you@example.com">
+        </div>
+        <div class="input-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+          <span id="auth-submit-text">Log In</span>
+        </button>
+      </form>
+      
+      <div class="auth-switch">
+        <span id="auth-switch-text">Don't have an account? </span>
+        <a id="auth-switch-btn">Sign up</a>
+      </div>
+      <div id="auth-error" style="color: var(--danger-color); margin-top: 16px; font-size: 14px; display: none;"></div>
+    </div>
+  </div>
+
+  <!-- Main App Layout -->
+  <div id="app" class="hidden">
+    <!-- Sidebar -->
+    <aside id="sidebar">
+      <div class="brand">
+        <i data-lucide="sparkles"></i>
+        Dora
+      </div>
+      <ul class="nav-links">
+        <li><a class="nav-item active" data-target="dashboard-view"><i data-lucide="layout-dashboard"></i> Dashboard</a></li>
+        <li><a class="nav-item" data-target="tasks-view"><i data-lucide="check-square"></i> Tasks</a></li>
+        <li><a class="nav-item" data-target="habits-view"><i data-lucide="repeat"></i> Habits</a></li>
+        <li><a class="nav-item" data-target="analytics-view"><i data-lucide="bar-chart-2"></i> Analytics</a></li>
+      </ul>
+      <div style="margin-top: auto; padding: 24px;">
+        <button id="logout-btn" class="btn btn-outline" style="width: 100%;">
+          <i data-lucide="log-out"></i> Logout
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main id="main-content">
+      <div class="header">
+        <h2 id="page-title">Dashboard</h2>
+        <div class="header-actions">
+          <button id="theme-toggle" class="icon-btn">
+            <i data-lucide="moon"></i>
+          </button>
+          <button class="btn btn-primary" id="header-add-task-btn">
+            <i data-lucide="plus"></i> New Task
+          </button>
+        </div>
+      </div>
+
+      <!-- Dashboard View -->
+      <section id="dashboard-view" class="view active">
+        <div class="tips-card" id="productivity-tip">
+          <div class="tips-icon">
+            <i data-lucide="lightbulb"></i>
+          </div>
+          <div>
+            <h3 style="margin-bottom: 4px;">Smart Tip</h3>
+            <p id="tip-text">Welcome to Dora! Start by adding some tasks to plan your day.</p>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <div class="stat-card">
+            <div class="stat-header">
+              <span>Tasks Pending</span>
+              <i data-lucide="clock" style="color: var(--primary-color);"></i>
+            </div>
+            <div class="stat-value" id="stat-pending">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-header">
+              <span>Tasks Completed Today</span>
+              <i data-lucide="check-circle" style="color: var(--success-color);"></i>
+            </div>
+            <div class="stat-value" id="stat-completed">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-header">
+              <span>Total Habits Tracking</span>
+              <i data-lucide="repeat" style="color: var(--secondary-color);"></i>
+            </div>
+            <div class="stat-value" id="stat-habits">0</div>
+          </div>
+        </div>
+
+        <h3 style="margin-bottom: 16px;">Today's Priorities</h3>
+        <div class="task-list" id="dashboard-task-list">
+          <!-- Tasks injected via JS -->
+          <p style="color: var(--text-secondary);">No tasks for today. Enjoy your day!</p>
+        </div>
+      </section>
+
+      <!-- Tasks View -->
+      <section id="tasks-view" class="view">
+        <div style="display: flex; gap: 16px; margin-bottom: 24px;">
+          <div class="input-group" style="margin-bottom: 0; flex: 1;">
+            <input type="text" id="task-search" placeholder="Search tasks...">
+          </div>
+          <div class="input-group" style="margin-bottom: 0; width: 150px;">
+            <select id="task-filter">
+              <option value="all">All Tasks</option>
+              <option value="pending">Pending</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+          <div class="input-group" style="margin-bottom: 0; width: 150px;">
+            <select id="task-sort">
+              <option value="deadline">Deadline</option>
+              <option value="priority">Priority</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="task-list" id="main-task-list">
+          <!-- Tasks injected via JS -->
+        </div>
+      </section>
+
+      <!-- Habits View -->
+      <section id="habits-view" class="view">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+          <p>Track your daily habits and build streaks!</p>
+          <button class="btn btn-primary" id="add-habit-btn">
+            <i data-lucide="plus"></i> New Habit
+          </button>
+        </div>
+        
+        <div class="habit-grid" id="habit-list">
+          <!-- Habits injected via JS -->
+        </div>
+      </section>
+
+      <!-- Analytics View -->
+      <section id="analytics-view" class="view">
+        <div style="background: var(--surface-color); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border-color); margin-bottom: 24px;">
+          <h3 style="margin-bottom: 16px;">Productivity Trends (Last 7 Days)</h3>
+          <canvas id="productivity-chart" width="400" height="150"></canvas>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Task Modal -->
+  <div class="modal-overlay" id="task-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="task-modal-title">Add New Task</h3>
+        <button class="icon-btn" id="close-task-modal"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="task-form">
+          <input type="hidden" id="task-id">
+          <div class="input-group">
+            <label for="task-title">Title *</label>
+            <input type="text" id="task-title" required>
+          </div>
+          <div class="input-group">
+            <label for="task-desc">Description</label>
+            <input type="text" id="task-desc">
+          </div>
+          <div style="display: flex; gap: 16px;">
+            <div class="input-group" style="flex: 1;">
+              <label for="task-priority">Priority</label>
+              <select id="task-priority">
+                <option value="Low">Low</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="High">High</option>
+              </select>
+            </div>
+            <div class="input-group" style="flex: 1;">
+              <label for="task-deadline">Deadline</label>
+              <input type="datetime-local" id="task-deadline">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="cancel-task-btn">Cancel</button>
+        <button class="btn btn-primary" id="save-task-btn">Save Task</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Habit Modal -->
+  <div class="modal-overlay" id="habit-modal">
+    <div class="modal" style="max-width: 400px;">
+      <div class="modal-header">
+        <h3>Add New Habit</h3>
+        <button class="icon-btn" id="close-habit-modal"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="habit-form">
+          <div class="input-group">
+            <label for="habit-name">Habit Name *</label>
+            <input type="text" id="habit-name" required placeholder="e.g., Read for 30 mins">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="cancel-habit-btn">Cancel</button>
+        <button class="btn btn-primary" id="save-habit-btn">Save Habit</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
